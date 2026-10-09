@@ -1,11 +1,8 @@
-# Arduino IDE temporary/build files
 build/
 *.hex
 *.elf
 *.o
 *.d
-
-# OS/editor files
 .DS_Store
 Thumbs.db
 .vscode/

@@ -1,116 +1,93 @@
-# Smart Multifunctional Solar-Powered Scarecrow
+# Smart Multifunctional Solar-Powered Scarecrow — Arduino Software
 
-An Arduino Nano software starter project for a mobile scarecrow prototype that detects motion and can activate lights, a buzzer, and a relay-controlled DC pump. It also includes an ultrasonic obstacle check and a water-level input.
+Arduino Nano starter software for a crop-protection scarecrow using motion detection, a motor driver, a relay-controlled pump, a water-level sensor, ultrasonic distance sensing, a buzzer and an LED.
 
-> **Hardware note:** This is a configurable starter implementation, not a verified wiring diagram for your exact build. Confirm every pin and module voltage against your actual hardware before powering it. Test the pump with clean water only.
-
-## Features
-
-- PIR motion detection
-- Ultrasonic distance check to help avoid driving into nearby obstacles
-- Two DC geared motors controlled through an L298N driver
-- LED and buzzer alert
-- Relay-controlled 12 V pump with a timed run
-- Water-level input to prevent a pump run when the tank reads low
-- Serial Monitor messages for basic debugging
-
-## Hardware
+## Components covered
 
 - Arduino Nano
-- L298N dual H-bridge motor driver
-- 2 × 12 V geared DC motors
 - PIR motion sensor
-- HC-SR04-style ultrasonic sensor (check your module's voltage requirements)
+- L298N motor driver and two DC geared motors
+- Ultrasonic distance sensor (for example, HC-SR04)
+- Relay module and 12 V DC pump
 - Water-level sensor
-- Relay module suitable for the pump's voltage and current
-- 12 V DC pump
 - Buzzer/speaker module
-- LED (use a suitable series resistor if it is a bare LED)
-- 12 V battery, solar panel, and a suitable solar charge controller
-- DC-DC buck converter for a regulated supply suitable for the Nano and sensors
+- LED
+- Solar panel, battery and DC-DC buck converter (power hardware; no direct software control in this version)
 
-## Suggested pin map
+## Suggested pin assignments
 
-These are **suggested defaults only**. Change the constants in `src/SmartScarecrow.ino` to match your wiring.
-
-| Function | Arduino Nano pin |
+| Component signal | Arduino Nano pin |
 |---|---|
-| PIR output | D2 |
+| PIR OUT | D2 |
 | Ultrasonic TRIG | D3 |
 | Ultrasonic ECHO | D4 |
-| L298N ENA | D5 (PWM) |
+| L298N ENA | D5 |
 | L298N IN1 | D6 |
 | L298N IN2 | D7 |
 | L298N IN3 | D8 |
 | L298N IN4 | D9 |
-| L298N ENB | D10 (PWM) |
-| Relay module input | D11 |
-| Buzzer input | D12 |
-| LED output | A0 |
+| L298N ENB | D10 |
+| Relay input | D11 |
+| Buzzer signal | D12 |
+| LED control | A0 |
 | Water-level sensor analog output | A1 |
 
-## Important electrical safety
+**These are suggested pins, not confirmed pins for your actual build.** Make the code and wiring match.
 
-- **Do not power motors or the pump from an Arduino I/O pin.**
-- The motor driver and relay contacts must be rated for the motors/pump and their startup current.
-- Connect the Arduino, sensor, and motor-driver logic grounds together where required by the module design.
-- Use a suitable regulated supply for the Nano. Do not connect 12 V directly to the Nano's 5 V pin.
-- Use a suitable solar charge controller between the solar panel and battery. Do not connect a panel directly to a battery unless the battery system explicitly supports that arrangement.
-- Relay boards may be active-low or active-high. Set `RELAY_ACTIVE_LOW` correctly before use.
-- Keep wiring insulated and dry. Secure wheels and raised parts before testing.
-- For first tests, disconnect the pump and motors, verify sensor readings, then test one output at a time. Use clean water for pump testing; do not use pesticides as a test liquid.
-
-## Upload the sketch
+## Uploading
 
 1. Install the Arduino IDE.
-2. Open `src/SmartScarecrow.ino`.
-3. Connect the Arduino Nano by USB.
-4. In the IDE, select **Tools → Board → Arduino AVR Boards → Arduino Nano** (menu wording may vary).
-5. Select the correct processor option for your Nano clone if upload fails.
-6. Select the correct serial port.
-7. Click **Verify**, then **Upload**.
-8. Open **Tools → Serial Monitor** and set the baud rate to **9600**.
+2. Open `SmartScarecrow/SmartScarecrow.ino`.
+3. Connect the Nano by USB.
+4. Choose **Arduino Nano** under Tools → Board.
+5. Select the correct port and processor setting for your board.
+6. Click Verify, then Upload.
+7. Open Serial Monitor at 9600 baud.
 
-No third-party Arduino libraries are required.
+No third-party libraries are needed.
 
-## Initial setup and tuning
+## How the sketch works
 
-1. Confirm the pin map matches your wiring.
-2. Set `RELAY_ACTIVE_LOW` to match your relay module.
-3. With motors and pump disconnected, confirm PIR, ultrasonic, and water-level readings in Serial Monitor.
-4. Set `WATER_LEVEL_THRESHOLD` based on the readings from your specific sensor. Some sensors produce higher readings when wet; others may differ.
-5. Verify motor direction with the wheels raised safely. If a motor turns the wrong way, swap that motor's two output wires or invert its direction in code.
-6. Start with low motor speed and short run times.
+1. Starts with outputs OFF and waits 30 seconds for PIR stabilization.
+2. Watches the PIR sensor for motion.
+3. On motion, activates LED and buzzer briefly.
+4. Reads the water-level sensor and runs the pump briefly only if the reading meets the configured threshold.
+5. Reads the ultrasonic sensor.
+6. Commands both motors forward briefly only if the distance reading is valid and at least the configured obstacle distance.
+7. Stops the motors and waits for the event cooldown before handling another event.
 
-## Behaviour
+## Values you must verify
 
-When the PIR sensor detects motion, the sketch activates the LED and buzzer, checks the water-level input, runs the pump for a short configurable period if the level reads as sufficient, and commands the motors to move only if the ultrasonic sensor reports the path is clear. It then stops the motors and returns to monitoring.
+- `RELAY_ACTIVE_LOW`: some relay boards turn on for LOW; others for HIGH.
+- `WATER_LEVEL_THRESHOLD`: calibrate for your water sensor and tank.
+- `MOTOR_SPEED`: begin with a low value and test with wheels raised.
+- `OBSTACLE_LIMIT_CM`: tune for your installation.
+- Motor direction: verify safely; reverse motor wiring or code logic if needed.
 
-This is a simple demonstration logic. It does not identify whether a moving object is a bird, person, or animal, and the ultrasonic sensor is not a safety-certified obstacle detector.
+## Electrical safety
 
-## Repository structure
+- Never drive motors or the pump directly from an Arduino I/O pin.
+- Use an appropriately rated motor driver and relay, considering startup current.
+- Never connect 12 V to the Nano's 5 V pin.
+- Use a suitable solar charge controller between the panel and battery.
+- Use regulated power appropriate to each module and connect grounds as required by module documentation.
+- Verify sensor voltage compatibility. In particular, check whether the ultrasonic module's ECHO output is safe for the Nano and any connected 3.3 V logic.
+- Test inputs before enabling motor/pump power. Use clean water only for pump testing.
+- This prototype does not identify whether motion came from a bird, person or other animal and is not a safety-certified autonomous vehicle.
+
+## Repository layout
 
 ```text
-smart-scarecrow-github/
+smart-scarecrow-arduino-code/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── src/
+├── SmartScarecrow/
 │   └── SmartScarecrow.ino
 └── docs/
-    ├── wiring.md
-    └── software-flow.md
+    └── TESTING.md
 ```
-
-## Future improvements
-
-- Add a calibrated water-level sensor routine
-- Add low-battery monitoring
-- Add adjustable alert and motor timings
-- Add a manual override / emergency stop
-- Log detection counts over serial
-- Add a verified circuit diagram after the final wiring is confirmed
 
 ## Project status
 
-Prototype software starter. Validate pin assignments, relay polarity, sensor calibration, and motor directions on the actual hardware before deployment.
+Starter software for hardware integration. Confirm pin assignments and calibrate the sensors before relying on the system.
